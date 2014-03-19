@@ -1,4 +1,4 @@
 mrfft
 =====
 
-Multiple Radix Fast Fourier Transform for Java and C++
+Mixed Radix Fast Fourier Transform for Java and C++

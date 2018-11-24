@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+<style type="text/css">
+<!-- 
+a:        { text-decoration: none; }
+a:link    { text-decoration: none; }
+a:visited { text-decoration: none; }
+a:hover   { color: red; text-decoration: underline; }
+a:active  { color: green; }
+-->
+</style><title>FFT.java</title>
+
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="AUTHOR" content="Robert Sedgewick and Kevin Wayne"></head>
+<body><center><h3><a href="http://www.cs.princeton.edu/introcs/97data/index.php">INTRODUCTION TO COMPUTER SCIENCE</a><br>
+Robert Sedgewick and Kevin Wayne</h3></center><br>
+
+This is the syntax highlighted version of <a href="http://www.cs.princeton.edu/introcs/97data/FFT.java">FFT.java</a>.
+<pre><tt>
+<i><font color="#009900">/*************************************************************************</font></i>
+<i><font color="#009900"> *  Compilation:  javac FFT.java</font></i>
+<i><font color="#009900"> *  Execution:    java FFT N</font></i>
+<i><font color="#009900"> *  Dependencies: Complex.java</font></i>
+<i><font color="#009900"> *</font></i>
+<i><font color="#009900"> *  Compute the FFT and inverse FFT of a length N complex sequence.</font></i>
+<i><font color="#009900"> *  Bare bones implementation that runs in O(N log N) time.</font></i>
+<i><font color="#009900"> *</font></i>
+<i><font color="#009900"> *  Limitations</font></i>
+<i><font color="#009900"> *  -----------</font></i>
+<i><font color="#009900"> *   * assumes N is a power of 2</font></i>
+<i><font color="#009900"> *   * not the most memory efficient algorithm</font></i>
+<i><font color="#009900"> *  </font></i>
+<i><font color="#009900"> *************************************************************************/</font></i>
+
+<font color="#0000ff">public</font> <font color="#0000ff">class</font> FFT <font color="#000000">{</font>
+
+    <i><font color="#009900">// compute the FFT of x[], assuming its length is a power of 2</font></i>
+    <font color="#0000ff">public</font> <font color="#0000ff">static</font> Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> x<font color="#9a1900">)</font> <font color="#000000">{</font>
+        <font color="#0000ff">int</font> N <font color="#9a1900">=</font> x<font color="#9a1900">.</font>length<font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> y <font color="#9a1900">=</font> <font color="#0000ff">new</font> Complex<font color="#9a1900">[</font>N<font color="#9a1900">]</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// base case</font></i>
+        <font color="#0000ff">if</font> <font color="#9a1900">(</font>N <font color="#9a1900">=</font><font color="#9a1900">=</font> <font color="#993399">1</font><font color="#9a1900">)</font> <font color="#000000">{</font>
+            y<font color="#9a1900">[</font><font color="#993399">0</font><font color="#9a1900">]</font> <font color="#9a1900">=</font> x<font color="#9a1900">[</font><font color="#993399">0</font><font color="#9a1900">]</font><font color="#9a1900">;</font>
+            <font color="#0000ff">return</font> y<font color="#9a1900">;</font>
+        <font color="#000000">}</font>
+
+        <i><font color="#009900">// radix 2 Cooley-Tukey FFT</font></i>
+        <font color="#0000ff">if</font> <font color="#9a1900">(</font>N <font color="#9a1900">%</font> <font color="#993399">2</font> <font color="#9a1900">!</font><font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">)</font> <font color="#0000ff">throw</font> <font color="#0000ff">new</font> <b><font color="#000000">RuntimeException</font></b><font color="#9a1900">(</font><font color="#990000">"N is not a power of 2"</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> even <font color="#9a1900">=</font> <font color="#0000ff">new</font> Complex<font color="#9a1900">[</font>N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">]</font><font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> odd  <font color="#9a1900">=</font> <font color="#0000ff">new</font> Complex<font color="#9a1900">[</font>N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">]</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> k <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> k <font color="#9a1900">&lt;</font> N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">;</font> k<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font> even<font color="#9a1900">[</font>k<font color="#9a1900">]</font> <font color="#9a1900">=</font> x<font color="#9a1900">[</font><font color="#993399">2</font><font color="#9a1900">*</font>k<font color="#9a1900">]</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> k <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> k <font color="#9a1900">&lt;</font> N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">;</font> k<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font> odd<font color="#9a1900">[</font>k<font color="#9a1900">]</font>  <font color="#9a1900">=</font> x<font color="#9a1900">[</font><font color="#993399">2</font><font color="#9a1900">*</font>k <font color="#9a1900">+</font> <font color="#993399">1</font><font color="#9a1900">]</font><font color="#9a1900">;</font>
+
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> q <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>even<font color="#9a1900">)</font><font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> r <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>odd<font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> k <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> k <font color="#9a1900">&lt;</font> N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">;</font> k<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font> <font color="#000000">{</font>
+            <font color="#0000ff">double</font> kth <font color="#9a1900">=</font> <font color="#9a1900">-</font><font color="#993399">2</font> <font color="#9a1900">*</font> k <font color="#9a1900">*</font> Math<font color="#9a1900">.</font>PI <font color="#9a1900">/</font> N<font color="#9a1900">;</font>
+            Complex wk <font color="#9a1900">=</font> <font color="#0000ff">new</font> <b><font color="#000000">Complex</font></b><font color="#9a1900">(</font>Math<font color="#9a1900">.</font><b><font color="#000000">cos</font></b><font color="#9a1900">(</font>kth<font color="#9a1900">)</font><font color="#9a1900">,</font> Math<font color="#9a1900">.</font><b><font color="#000000">sin</font></b><font color="#9a1900">(</font>kth<font color="#9a1900">)</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+            y<font color="#9a1900">[</font>k<font color="#9a1900">]</font>       <font color="#9a1900">=</font> q<font color="#9a1900">[</font>k<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">plus</font></b><font color="#9a1900">(</font>wk<font color="#9a1900">.</font><b><font color="#000000">times</font></b><font color="#9a1900">(</font>r<font color="#9a1900">[</font>k<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+            y<font color="#9a1900">[</font>k <font color="#9a1900">+</font> N<font color="#9a1900">/</font><font color="#993399">2</font><font color="#9a1900">]</font> <font color="#9a1900">=</font> q<font color="#9a1900">[</font>k<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">minus</font></b><font color="#9a1900">(</font>wk<font color="#9a1900">.</font><b><font color="#000000">times</font></b><font color="#9a1900">(</font>r<font color="#9a1900">[</font>k<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#000000">}</font>
+        <font color="#0000ff">return</font> y<font color="#9a1900">;</font>
+    <font color="#000000">}</font>
+
+
+    <i><font color="#009900">// compute the inverse FFT of x[], assuming its length is a power of 2</font></i>
+    <font color="#0000ff">public</font> <font color="#0000ff">static</font> Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> <b><font color="#000000">ifft</font></b><font color="#9a1900">(</font>Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> x<font color="#9a1900">)</font> <font color="#000000">{</font>
+        <font color="#0000ff">int</font> N <font color="#9a1900">=</font> x<font color="#9a1900">.</font>length<font color="#9a1900">;</font>
+
+        <i><font color="#009900">// take conjugate</font></i>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            x<font color="#9a1900">[</font>i<font color="#9a1900">]</font> <font color="#9a1900">=</font> x<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">conjugate</font></b><font color="#9a1900">(</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// compute forward FFT</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> y <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>x<font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// take conjugate again</font></i>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            y<font color="#9a1900">[</font>i<font color="#9a1900">]</font> <font color="#9a1900">=</font> y<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">conjugate</font></b><font color="#9a1900">(</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// divide by N</font></i>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            y<font color="#9a1900">[</font>i<font color="#9a1900">]</font> <font color="#9a1900">=</font> y<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">times</font></b><font color="#9a1900">(</font><font color="#993399">1.0</font> <font color="#9a1900">/</font> N<font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <font color="#0000ff">return</font> y<font color="#9a1900">;</font>
+
+    <font color="#000000">}</font>
+
+    <i><font color="#009900">// compute the convolution of x and y</font></i>
+    <font color="#0000ff">public</font> <font color="#0000ff">static</font> Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> <b><font color="#000000">convolve</font></b><font color="#9a1900">(</font>Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> x<font color="#9a1900">,</font> Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> y<font color="#9a1900">)</font> <font color="#000000">{</font>
+        <font color="#0000ff">if</font> <font color="#9a1900">(</font>x<font color="#9a1900">.</font>length <font color="#9a1900">!</font><font color="#9a1900">=</font> y<font color="#9a1900">.</font>length<font color="#9a1900">)</font> <font color="#0000ff">throw</font> <font color="#0000ff">new</font> <b><font color="#000000">RuntimeException</font></b><font color="#9a1900">(</font><font color="#990000">"Dimensions don't agree"</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#0000ff">int</font> N <font color="#9a1900">=</font> x<font color="#9a1900">.</font>length<font color="#9a1900">;</font>
+
+        <i><font color="#009900">// compute FFT of each sequence</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> a <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>x<font color="#9a1900">)</font><font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> b <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>y<font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// point-wise multiply</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> c <font color="#9a1900">=</font> <font color="#0000ff">new</font> Complex<font color="#9a1900">[</font>N<font color="#9a1900">]</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            c<font color="#9a1900">[</font>i<font color="#9a1900">]</font> <font color="#9a1900">=</font> a<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">.</font><b><font color="#000000">times</font></b><font color="#9a1900">(</font>b<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// compute inverse FFT</font></i>
+        <font color="#0000ff">return</font> <b><font color="#000000">ifft</font></b><font color="#9a1900">(</font>c<font color="#9a1900">)</font><font color="#9a1900">;</font>
+    <font color="#000000">}</font>
+
+
+
+    <i><font color="#009900">// test client</font></i>
+    <font color="#0000ff">public</font> <font color="#0000ff">static</font> <font color="#0000ff">void</font> <b><font color="#000000">main</font></b><font color="#9a1900">(</font>String<font color="#9a1900">[</font><font color="#9a1900">]</font> args<font color="#9a1900">)</font> <font color="#000000">{</font> 
+        <font color="#0000ff">int</font> N <font color="#9a1900">=</font> Integer<font color="#9a1900">.</font><b><font color="#000000">parseInt</font></b><font color="#9a1900">(</font>args<font color="#9a1900">[</font><font color="#993399">0</font><font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> x <font color="#9a1900">=</font> <font color="#0000ff">new</font> Complex<font color="#9a1900">[</font>N<font color="#9a1900">]</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// original data</font></i>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font> <font color="#000000">{</font>
+            x<font color="#9a1900">[</font>i<font color="#9a1900">]</font> <font color="#9a1900">=</font> <font color="#0000ff">new</font> <b><font color="#000000">Complex</font></b><font color="#9a1900">(</font>i<font color="#9a1900">,</font> <font color="#993399">0</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#000000">}</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font>x<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// FFT of original data</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> y <font color="#9a1900">=</font> <b><font color="#000000">fft</font></b><font color="#9a1900">(</font>x<font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font>y<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// take inverse FFT</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> z <font color="#9a1900">=</font> <b><font color="#000000">ifft</font></b><font color="#9a1900">(</font>y<font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font>z<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+        System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+        <i><font color="#009900">// convolution of x with itself</font></i>
+        Complex<font color="#9a1900">[</font><font color="#9a1900">]</font> c <font color="#9a1900">=</font> <b><font color="#000000">convolve</font></b><font color="#9a1900">(</font>x<font color="#9a1900">,</font> x<font color="#9a1900">)</font><font color="#9a1900">;</font>
+        <font color="#0000ff">for</font> <font color="#9a1900">(</font><font color="#0000ff">int</font> i <font color="#9a1900">=</font> <font color="#993399">0</font><font color="#9a1900">;</font> i <font color="#9a1900">&lt;</font> N<font color="#9a1900">;</font> i<font color="#9a1900">+</font><font color="#9a1900">+</font><font color="#9a1900">)</font>
+            System<font color="#9a1900">.</font>out<font color="#9a1900">.</font><b><font color="#000000">println</font></b><font color="#9a1900">(</font>c<font color="#9a1900">[</font>i<font color="#9a1900">]</font><font color="#9a1900">)</font><font color="#9a1900">;</font>
+
+    <font color="#000000">}</font>
+
+<font color="#000000">}</font>
+</tt>
+</pre>
+
+<br><small>Last updated: Tue Jun  1 08:35:28 EDT 2004
+.</small>
+
+<br><small>Copyright © 2004, Robert Sedgewick and Kevin Wayne.</small></body></html>

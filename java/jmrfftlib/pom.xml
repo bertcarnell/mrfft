@@ -18,7 +18,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.11</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -26,5 +26,35 @@
       <artifactId>commons-math3</artifactId>
       <version>3.2</version>
     </dependency>
+    <dependency>
+      <groupId>com.gmail.bertcarnell</groupId>
+      <artifactId>AssertExtensions</artifactId>
+      <version>1.0.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+  
+  <repositories>
+      <repository>
+          <id>bertcarnellMavenMicroRepo-releases</id>
+          <url>https://raw.github.com/bertcarnell/bertcarnellMavenMicroRepo/master/releases</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </repository>
+      <repository>
+          <id>bertcarnellMavenMicroRepo-snapshots</id>
+          <url>https://raw.github.com/bertcarnell/bertcarnellMavenMicroRepo/master/snapshots</url>
+          <releases>
+              <enabled>false</enabled>
+          </releases>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+      </repository>
+  </repositories>
+  
 </project>

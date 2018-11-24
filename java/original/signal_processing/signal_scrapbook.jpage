@@ -1,0 +1,4 @@
+int [] test = new int[15];
+Arrays.fill(test, 3);
+System.out.println(Arrays.toString(test));
+

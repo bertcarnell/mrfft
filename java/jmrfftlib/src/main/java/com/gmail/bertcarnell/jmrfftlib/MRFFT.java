@@ -5,29 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 
  * This class implements a java version of Singleton's mixed Radix FFT
  * as presented in "An Algorithm for Computing the Mixed Radix FFT Fourier Transform,"
  * Richard C. Singleton, IEEE Transactions on Audio and Electroacoutics,
  * Vol AU-17, No. 2, 1969.
- * 
- * subroutine fft(a,b,ntot,n,nspan,isn)
- * multivariate complex fourier transform, computed in place using mixed-radix 
- * fast fourier transform algorithm.
- * by r. c. singleton, stanford research institute, sept. 1968
- * 
- * multivariate data is indexed according to the fortran array element successor function, without limit
- * on the number of implied multiple subscripts.  the subroutine is called once for each variate.
- * the calls for a multivariate transform may be in any order.
- * 
- * a tri-variate transform with a(n1,n2,n3), b(n1,n2,n3) is computed by
- * call fft(a,b,n1*n2*n3,n1,n1,1)
- * call fft(a,b,n1*n2*n3,n2,n1*n2,1)
- * call fft(a,b,n1*n2*n3,n3,n1*n2*n3,1)
- * 
- * for a single-variate transform, ntot = n = nspan = (number of complex data values), e.g.
- * call fft(a,b,n,n,n,1)
- * 
  */
 public class MRFFT 
 {
@@ -49,8 +30,7 @@ public class MRFFT
 	private double[] sk = new double[MAX_FACTOR];
 	private int nP[] = new int[MAX_PRODUCT];
 	
-	public ArrayList<Complex> x; 
-	int maxf = MAX_FACTOR;
+	private ArrayList<Complex> y; 
         /**
          * ntot is the total number of complex data values.
          */
@@ -62,13 +42,13 @@ public class MRFFT
         /**
          * nspan/n is the spacing of consecutive data values while indexing the current variable.
          */
-	private int nSpan; 
+	//private int nSpan; 
         /**
          * the sign of isn determines the sign of the complex exponential, and the magnitude of isn is normally one.
+         * used in the constructor and fft4()
          */
 	private int isn;
 	private int inc;
-	private int arrayLength;
 	
         /**
          * array storage in nfac for a maximum of 15 prime factors of n.
@@ -81,7 +61,7 @@ public class MRFFT
 	private int kSpan;
 	private int nn;
 	private int jc;
-	private int jf;
+	//private int jf;
 	private double radf;
         // arrays a and b originally hold the real and imaginary
         // components of the data, and return the real and
@@ -90,7 +70,8 @@ public class MRFFT
 	private double [] a;
 	private double [] b;
 	
-	private double rad = 2*Math.PI;
+        // variables that are set by the constructor and used in the fft's
+	private double rad;
 	private double s72;
 	private double c72;
 	private double s120;
@@ -101,26 +82,19 @@ public class MRFFT
 	private double c1;
 	private double ak;
 	private double bk;
-	private int i;
-	private int jj;
+	//private int jj;
 	private int kk;
 	private int k1;
 	private int k2;
 	private int k3;
-	private boolean cont;
-	private int numFacs = 0;
+	//private boolean cont;
+	private int numFacs;
 	private int kt;
 	private int m;
 	private int k;
 	private int j;
-	private int jsquared;
+	//private int jsquared;
 	private int kSpnn;
-	// fftOdd and fft3
-	private double aj;
-	private double bj;
-	// fftOdd and fft5
-	private double aa;
-	private double bb;
 
 	/**
 	 * Constructor for the Mixed Radix Fast Fourier Transform<p>
@@ -128,13 +102,16 @@ public class MRFFT
 	 */
 	public MRFFT(List<Complex> x, int nTot, int n, int nSpan, int isn)
         {
-		System.out.println("Constructor");
-                this.x = new ArrayList<Complex>(x.size());
-                this.x.addAll(x);
-		this.arrayLength = x.size();
+		//System.out.println("Constructor");
+                int arrayLength = x.size();
+                y = new ArrayList<Complex>(arrayLength);
+                for (int i = 0; i < arrayLength; i++)
+                {
+                    y.add(Complex.ZERO);
+                }
 		this.nTot = nTot;
 		this.n = n;
-		this.nSpan = nSpan;
+		//this.nSpan = nSpan;
 		this.isn = isn;
 		
 		a = new double[arrayLength+1];
@@ -144,12 +121,13 @@ public class MRFFT
 			b[i] = x.get(i).getImaginary();
 		}
 		inc = isn;
-		c72 = Math.cos(rad / 5.0);
+                rad = 2*Math.PI;
 		// cosine of 72 degrees
-		s72 = Math.sin(rad / 5.0);
+		c72 = Math.cos(rad / 5.0);
 		// sine of 72 degrees
-		s120 = Math.sqrt(0.75);
+		s72 = Math.sin(rad / 5.0);
 		// s120 is the sine of 120 degrees, the sqrt of 3/4 is a more exact calculation
+		s120 = Math.sqrt(0.75);
 		if (isn < 0)
                 {
 			s72 = -s72;
@@ -163,8 +141,8 @@ public class MRFFT
 		nn = nt - inc;
 		jc = ks / n;
 		radf = rad * ((double)jc) * 0.5;
-		jf = 0;
-		i = 0;
+		//jf = 0;
+		//i = 0;
 		m = factors(nFac, n);
 		numFacs = m;
 	} // end MRFFT constructor
@@ -175,6 +153,16 @@ public class MRFFT
 //		fft2();
 //		return;
 //	}
+        
+        public List<Complex> getSignal()
+        {
+            return y;
+        }
+        
+        public Complex getSignal(int i)
+        {
+            return y.get(i);
+        }
 	
 	/**
 	 * Factors small integers into primes (and powers of 4) as part of Singleton's FFT algorithm
@@ -196,6 +184,7 @@ public class MRFFT
 		 *30030:  2 3 5 7 11 13
 		 *390390:  13 2 3 5 7 11 13
 		 */
+            int jsquared;
 		// Determine the factors of n
 		m = 0;
 		k = n;
@@ -272,12 +261,28 @@ public class MRFFT
 	
 	/**
 	 * Calculates the Fast Fourier Transform as part of Singleton's FFT algorithm
+        * subroutine fft(a,b,ntot,n,nspan,isn)
+        * multivariate complex fourier transform, computed in place using mixed-radix 
+        * fast fourier transform algorithm.
+        * by r. c. singleton, stanford research institute, sept. 1968
+        * 
+        * multivariate data is indexed according to the fortran array element successor function, without limit
+        * on the number of implied multiple subscripts.  the subroutine is called once for each variate.
+        * the calls for a multivariate transform may be in any order.
+        * 
+        * a tri-variate transform with a(n1,n2,n3), b(n1,n2,n3) is computed by
+        * call fft(a,b,n1*n2*n3,n1,n1,1)
+        * call fft(a,b,n1*n2*n3,n2,n1*n2,1)
+        * call fft(a,b,n1*n2*n3,n3,n1*n2*n3,1)
+        * 
+        * for a single-variate transform, ntot = n = nspan = (number of complex data values), e.g.
+        * call fft(a,b,n,n,n,1)
 	 */
 	public void fft()
         {	
 		//System.out.println("Start method fft()");
-		i = 0;
-		cont = true;
+		int factorNumber = 0;
+		boolean cont = true;
 		if (n >= 2) 
                 {
 			while (cont)
@@ -286,23 +291,32 @@ public class MRFFT
 				cd = 2.0 * Math.pow(Math.sin(sd), 2.0);
 				sd = Math.sin(sd + sd);
 				kk = 1;
-				i++;
-				if (this.nFac[i] != 2)
+				factorNumber++;
+				if (this.nFac[factorNumber] != 2)
                                 {
-                                    fft4();  //go to 400;
+                                    if (nFac[factorNumber] != 4)
+                                    {
+                                        fftOdd(nFac[factorNumber], factorNumber);
+                                    }
+                                    else
+                                    {
+                                        fft4();  //go to 400;
+                                    }
                                 }
                                 else
                                 {
                                     fft2();
                                 }
-				if (i >= numFacs) 
+				if (factorNumber >= numFacs)
+                                {
                                     cont = false;
+                                }
 				//System.out.println("i: " + i  +" nFac[i]: " + nFac[i] + " cont:"+ cont);
 			} // end while(cont)
 		} // end if (n >= 2)
-		for (int i = 1; i <= n; i++)
+		for (int iOutput = 1; iOutput <= n; iOutput++)
                 {
-			x.set(i, Complex.valueOf(a[i], b[i]));
+			y.set(iOutput, Complex.valueOf(a[iOutput], b[iOutput]));
 		} // end for block
 	} // end fft method
 	
@@ -317,102 +331,95 @@ public class MRFFT
 	public void fft4()
         {
 		//System.out.println("Start Method fft4()");
-		if (nFac[i] != 4)
+                double akp;
+                double akm;
+                double ajp;
+                double ajm;
+                double bkp;
+                double bkm;
+                double bjp;
+                double bjm;
+                double c2 = 0;
+                double c3 = 0;
+                double s2 = 0;
+                double s3 = 0;
+                kSpnn = kSpan;
+                kSpan = kSpan / 4;
+                do
+                {//410 
+                        c1 = 1.0;
+                        s1 = 0;
+                        do
+                        {// 420
+                                do
+                                {//420
+                                        k1 = kk + kSpan;
+                                        k2 = k1 + kSpan;
+                                        k3 = k2 + kSpan;
+                                        akp = a[kk] + a[k2];
+                                        akm = a[kk] - a[k2];
+                                        ajp = a[k1] + a[k3];
+                                        ajm = a[k1] - a[k3];
+                                        a[kk] = akp + ajp;
+                                        ajp = akp - ajp;
+                                        bkp = b[kk] + b[k2];
+                                        bkm = b[kk] - b[k2];
+                                        bjp = b[k1] + b[k3];
+                                        bjm = b[k1] - b[k3];
+                                        b[kk] = bkp + bjp;
+                                        bjp = bkp - bjp;
+                                        if (isn < 0)
+                                        {// go to 450
+                                                akp = akm + bjm;
+                                                akm = akm - bjm;
+                                                bkp = bkm - ajm;
+                                                bkm = bkm + ajm;
+                                        } // end if (isn < 0 )
+                                        else
+                                        {
+                                                akp = akm - bjm;
+                                                akm = akm + bjm;
+                                                bkp = bkm + ajm;
+                                                bkm = bkm - ajm;
+                                        } // end else block
+                                        if (s1 == 0)
+                                        { // 460
+                                                a[k1] = akp;
+                                                b[k1] = bkp;
+                                                a[k2] = ajp;
+                                                b[k2] = bjp;
+                                                a[k3] = akm;
+                                                b[k3] = bkm;
+                                                kk = k3 + kSpan;
+                                        } // end if (s1 == 0)
+                                        else
+                                        {//430 
+                                                a[k1] = akp*c1 - bkp*s1;
+                                                b[k1] = akp*s1 + bkp*c1;
+                                                a[k2] = ajp*c2 - bjp*s2;
+                                                b[k2] = ajp*s2 + bjp*c2;
+                                                a[k3] = akm*c3 - bkm*s3;
+                                                b[k3] = akm*s3 + bkm*c3;
+                                                kk = k3 + kSpan;
+                                        } // end else block
+                                } while (kk <= nt); // go to 420
+                                c2 = c1 - (cd*c1 + sd*s1);
+                                s1 = (sd*c1 - cd*s1) + s1;
+                                c1 = 2.0 - (c2*c2 + s1*s1);
+                                s1 = c1 * s1;
+                                c1 = c1 * c2;
+                                c2 = c1*c1 - s1*s1;
+                                s2 = 2.0 * c1 * s1;
+                                c3 = c2*c1 - s2*s1;
+                                s3 = c2*s1 + s2*c1;
+                                kk = kk - nt + jc;
+                        } while (kk <= kSpan) ;//go to 420
+                        kk = kk - kSpan + inc;
+                } while (kk <= jc); //go to 410
+                if (kSpan == jc)
                 {
-                    fftOdd();
+                    permute();
                 }
-		else
-                {
-			double akp;
-			double akm;
-			double ajp;
-			double ajm;
-			double bkp;
-			double bkm;
-			double bjp;
-			double bjm;
-			double c2 = 0;
-			double c3 = 0;
-			double s2 = 0;
-			double s3 = 0;
-			kSpnn = kSpan;
-			kSpan = kSpan / 4;
-			do
-                        {//410 
-				c1 = 1.0;
-				s1 = 0;
-				do
-                                {// 420
-					do
-                                        {//420
-						k1 = kk + kSpan;
-						k2 = k1 + kSpan;
-						k3 = k2 + kSpan;
-						akp = a[kk] + a[k2];
-						akm = a[kk] - a[k2];
-						ajp = a[k1] + a[k3];
-						ajm = a[k1] - a[k3];
-						a[kk] = akp + ajp;
-						ajp = akp - ajp;
-						bkp = b[kk] + b[k2];
-						bkm = b[kk] - b[k2];
-						bjp = b[k1] + b[k3];
-						bjm = b[k1] - b[k3];
-						b[kk] = bkp + bjp;
-						bjp = bkp - bjp;
-						if (isn < 0)
-                                                {// go to 450
-							akp = akm + bjm;
-							akm = akm - bjm;
-							bkp = bkm - ajm;
-							bkm = bkm + ajm;
-						} // end if (isn < 0 )
-						else
-                                                {
-							akp = akm - bjm;
-							akm = akm + bjm;
-							bkp = bkm + ajm;
-							bkm = bkm - ajm;
-						} // end else block
-						if (s1 == 0)
-                                                { // 460
-							a[k1] = akp;
-							b[k1] = bkp;
-							a[k2] = ajp;
-							b[k2] = bjp;
-							a[k3] = akm;
-							b[k3] = bkm;
-							kk = k3 + kSpan;
-						} // end if (s1 == 0)
-						else
-                                                {//430 
-							a[k1] = akp*c1 - bkp*s1;
-							b[k1] = akp*s1 + bkp*c1;
-							a[k2] = ajp*c2 - bjp*s2;
-							b[k2] = ajp*s2 + bjp*c2;
-							a[k3] = akm*c3 - bkm*s3;
-							b[k3] = akm*s3 + bkm*c3;
-							kk = k3 + kSpan;
-						} // end else block
-					} while (kk <= nt); // go to 420
-					c2 = c1 - (cd*c1 + sd*s1);
-					s1 = (sd*c1 - cd*s1) + s1;
-					c1 = 2.0 - (c2*c2 + s1*s1);
-					s1 = c1 * s1;
-					c1 = c1 * c2;
-					c2 = c1*c1 - s1*s1;
-					s2 = 2.0 * c1 * s1;
-					c3 = c2*c1 - s2*s1;
-					s3 = c2*s1 + s2*c1;
-					kk = kk - nt + jc;
-				} while (kk <= kSpan) ;//go to 420
-				kk = kk - kSpan + inc;
-			} while (kk <= jc); //go to 410
-			if (kSpan == jc)
-                        {
-                            permute();
-                        }
-		} // end else block
 	} // end fft4 method
 	
 	/**
@@ -423,23 +430,27 @@ public class MRFFT
 	 * fft3() and fft5() are called from fftOdd
 	 * 
 	 */
-	public void fftOdd()
+	public void fftOdd(int fac, int factorNumber)
         {
 		//System.out.println("Start Method fftOdd()");
 		double aa;
 		double bb;
-		k = nFac[i];
+                double aj;
+                double bj;
+                int jf = 0;
+                int jj;
+		k = fac;
 		kSpnn = kSpan;
 		kSpan = kSpan / k;
 		if (k == 3) 
                 {
-                    fft3(); 
+                    fft3(factorNumber); 
                     //System.out.println("Leave fftOdd after fft3"); 
                     return;
                 } // go to 320 // Rob added
 		if (k == 5) 
                 {
-                    fft5(); 
+                    fft5(factorNumber); 
                     //System.out.println("Leave fftOdd after fft5"); 
                     return;
                 } // go to 510 // Rob added
@@ -449,12 +460,12 @@ public class MRFFT
 			s1 = rad / ((double)k);
 			c1 = Math.cos(s1);
 			s1 = Math.sin(s1);
-			if (jf > maxf) 
+			if (jf > MAX_FACTOR) 
                         {
 				// error finish, insufficient array storage
-				isn = 0;
+				//isn = 0; // TODO: Why was this set right before throwing an error?
 				throw new Error("array bounds exceeded within subroutine fftOdd");
-			} // end if (jf > maxf)
+			} // end if (jf > MAX_FACTOR)
 			ck[jf] = 1.0;
 			sk[jf] = 0.0;
 			j = 1;
@@ -533,7 +544,7 @@ public class MRFFT
 			} while (kk <= nn); // end do block
 			kk = kk - nn;
 		} while (kk <= kSpan); //end do block
-		rotate(); // rotate factor applied to all factors except 2 and 4
+		rotate(factorNumber); // rotate factor applied to all factors except 2 and 4
 		//System.out.println("fftOdd Complete");
 	} // end fftOdd method
 	
@@ -545,8 +556,11 @@ public class MRFFT
 	 * as part of Singleton's FFT algorithm
 	 * 
 	 */
-	public void fft3(){
-		System.out.println("Start Method fft3()");
+	public void fft3(int factorNumber)
+        {
+            double aj;
+            double bj;
+		//System.out.println("Start Method fft3()");
 		do
                 { // 320
 			do
@@ -571,7 +585,7 @@ public class MRFFT
 			} while (kk < nn); // go to 320
 			kk = kk - nn;
 		} while (kk <= kSpan);// go to 320
-		rotate(); //go to 700
+		rotate(factorNumber); //go to 700
 		//System.out.println("fft3 Complete");
 	}// end fft3 method
 	
@@ -583,10 +597,15 @@ public class MRFFT
 	 * as part of Singleton's FFT algorithm
 	 * 
 	 */
-	public void fft5(){
+	public void fft5(int factorNumber)
+        {
 		//System.out.println("Start Method fft5()");
 		double c2;
 		double s2;
+                double aa;
+                double bb;
+                double aj;
+                double bj;
 		double akp;
 		double akm;
 		double bkp;
@@ -638,7 +657,7 @@ public class MRFFT
 			} while (kk < nn);// go to 520
 			kk = kk - nn;
 		} while (kk <= kSpan);// go to 520
-		rotate();
+		rotate(factorNumber);
 		//System.out.println("fft5 Complete");
 	} // end fft5 method
 
@@ -719,11 +738,13 @@ public class MRFFT
 	 * transform step and R[i] is the ith rotation step.
 	 * 
 	 */
-	public void rotate() {
+        // unused assignment is not correct in the do while loop
+        @SuppressWarnings("UnusedAssignment")
+	public void rotate(int factorNumber) {
 		//System.out.println("Start Method rotate");
 		double c2;
 		double s2;
-		if (i != m)
+		if (factorNumber != m)
                 {
 			kk = jc + 1;
 			do
@@ -773,6 +794,8 @@ public class MRFFT
 	 */
 	private void permute() 
         {
+            int maxf = MAX_FACTOR;
+            int jj;
 		//System.out.println("Start Method permute");
 		int ii;
 		nP[1] = ks;
